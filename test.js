@@ -1,5 +1,3 @@
-// while true; do perl -e 'alarm shift @ARGV; exec @ARGV' 60 casperjs test.js; done
-
 /*global mw, ve, $ */
 
 var casper, articleName, url;

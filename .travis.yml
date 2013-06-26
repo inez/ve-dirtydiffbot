@@ -8,4 +8,4 @@ script:
 notifications:
  irc:
    channels:
-     - "chat.freenode.net##krinkle"
+     - "chat.freenode.net#mediawiki-visualeditor"
