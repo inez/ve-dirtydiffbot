@@ -7,5 +7,5 @@ ve-dirtydiffbot [![Build Status](https://travis-ci.org/Krinkle/ve-dirtydiffbot.p
 
 ## Run
 ```bash
-casperjs test.js
+cd output && casperjs test.js
 ```

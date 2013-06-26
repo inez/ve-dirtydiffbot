@@ -119,7 +119,7 @@ casper.then(function () {
 				height: $saveDialog.outerHeight()
 			};
 		});
-		this.capture('diff/' + articleName.replace(/ /g, '_').replace(/[^a-zA-Z0-9_\-]/g, '-') + '.png', clipRect);
+		this.capture(articleName.replace(/ /g, '_').replace(/[^a-zA-Z0-9_\-]/g, '-') + '.png', clipRect);
 	} else {
 		msg('VisualEditor got clean diff');
 	}
