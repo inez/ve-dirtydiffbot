@@ -26,5 +26,5 @@ fi
 total=2
 for (( i=1;  i<total; i++)); do
 	echo "[loop] Run $i of $total..."
-	casperjs $BASE_DIR/test.js
+	timeout 120 casperjs $BASE_DIR/test.js
 done
