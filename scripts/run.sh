@@ -23,7 +23,7 @@ fi
 # The maximum duration of 1 run about 45-60 seconds
 # We plan to run this every 12 hours, so lets run it
 # no more than (12 * 60) = 720 times
-total=2
+total=720
 for (( i=1;  i<total; i++)); do
 	echo "[loop] Run $i of $total..."
 	timeout 120 casperjs $BASE_DIR/test.js
