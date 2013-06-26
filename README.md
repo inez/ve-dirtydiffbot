@@ -1,4 +1,4 @@
-ve-dirtydiffbot [![Build Status](https://travis-ci.org/Krinkle/ve-dirtydiffbot.png)](https://travis-ci.org/Krinkle/ve-dirtydiffbot)
+ve-dirtydiffbot [![Build Status](https://travis-ci.org/inez/ve-dirtydiffbot.png)](https://travis-ci.org/inez/ve-dirtydiffbot)
 ======
 
 ## Requirements
