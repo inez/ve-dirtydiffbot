@@ -1,0 +1,34 @@
+{
+	// Enforcing
+	"bitwise": true,
+	"camelcase": true,
+	"curly": true,
+	"eqeqeq": true,
+	"immed": true,
+	"latedef": true,
+	"newcap": true,
+	"noarg": true,
+	"noempty": true,
+	"nonew": true,
+	"quotmark": "single",
+	"regexp": true,
+	"trailing": true,
+	"undef": true,
+	"unused": true,
+
+	// Relaxing
+	"multistr": true,
+	"smarttabs": true,
+
+	// Environment
+	"node": true,
+
+	// Legacy
+	"nomen": true,
+	"onevar": true,
+	"white": true,
+
+	"predef": [
+		"phantom"
+	]
+}
