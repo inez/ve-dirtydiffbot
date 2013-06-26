@@ -4,6 +4,10 @@
 
 var casper, articleName, url;
 
+function msg(text) {
+	casper.echo('[ve-dirtydiffbot] ' + text);
+}
+
 casper = require('casper').create({
 	viewportSize: {
 		width: 1280,
@@ -24,32 +28,15 @@ casper = require('casper').create({
 	logLevel: 'debug'
 });
 
-if (casper.cli.args.length === 0) {
-	articleName = null;
-	url = 'http://en.wikipedia.org/wiki/Special:Random';
-	casper.echo('### GOING TO RANDOM ARTICLE ###');
-} else {
-	articleName = casper.cli.args[0];
-	url = 'http://en.wikipedia.org/wiki/' + articleName;
-	casper.echo('### GOING TO ARTICLE ' + articleName + ' ###');
-}
+articleName = casper.cli.args.length === 0 ? 'Special:Random' : casper.cli.args[0];
+url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName);
+msg('Loading page "' + articleName + '"...');
 
 casper.userAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1468.0 Safari/537.36');
 
-casper.start('http://en.wikipedia.org/w/index.php?title=Special:UserLogin', function () {
-	var userName = this.evaluate(function () {
-		return mw.getConfig('wgUserName');
-	});
-	if (!userName) {
-		this.echo('Need to login.');
-		this.fill('form[name="userlogin"]', {
-			wpName: 'InezTest',
-			wpPassword: '<password>'
-		}, true);
-	}
-});
-casper.thenOpen(url, function () {
-	// PhantomJS does not have Function.prototype.bind to inject this Mozilla shim into the page
+casper.start(url, function () {
+	// PhantomJS does not have Function.prototype.bind,
+	// so inject this Mozilla shim into the page.
 	this.evaluate(function () {
 		if (!Function.prototype.bind) {
 			Function.prototype.bind = function (oThis) {
@@ -77,16 +64,15 @@ casper.thenOpen(url, function () {
 			};
 		}
 	});
-	if (articleName === null) {
-		articleName = this.evaluate(function () {
-			return mw.getConfig('wgPageName');
-		});
-	}
-	// Re-initialize main target cause the original initialization failed (cause there was no Function.prototype.bind).
+	articleName = this.evaluate(function () {
+		return mw.config.get('wgPageName');
+	});
+	msg('Loaded "' + articleName + '"');
+	msg('VisualEditor initializing...');
 	this.evaluate(function () {
-		ve.init.mw.targets[0] = new ve.init.mw.ViewPageTarget();
-		// Click edit
-		$('#ca-edit').find('a').click();
+		mw.loader.using('ext.visualEditor.viewPageTarget', function () {
+			$('#ca-edit').find('a').click();
+		});
 	});
 	this.waitFor(function () {
 		return this.evaluate(function () {
@@ -96,6 +82,8 @@ casper.thenOpen(url, function () {
 });
 
 casper.then(function () {
+	msg('VisualEditor initialized');
+	msg('VisualEditor generating diff...');
 	this.evaluate(function () {
 		ve.init.mw.targets[0].edited = true;
 		ve.init.mw.targets[0].toolbarSaveButton.setDisabled(false);
@@ -119,22 +107,25 @@ casper.then(function () {
 	});
 
 	if (diffLength > 1) {
-		this.echo('DIFF DIFF DIFF');
+		msg('VisualEditor got dirty diff');
+		msg('Capturing diff and writing to disk for analysis');
 		clipRect = this.evaluate(function () {
-			$('.ve-init-mw-viewPageTarget-saveDialog').css('max-height', '10000px');
+			var $saveDialog = $('.ve-init-mw-viewPageTarget-saveDialog');
+			$saveDialog.css('max-height', '10000px');
 			return {
-				top: $('.ve-init-mw-viewPageTarget-saveDialog').offset().top,
-				left: $('.ve-init-mw-viewPageTarget-saveDialog').offset().left,
-				width: $('.ve-init-mw-viewPageTarget-saveDialog').outerWidth(),
-				height: $('.ve-init-mw-viewPageTarget-saveDialog').outerHeight()
+				top: $saveDialog.offset().top,
+				left: $saveDialog.offset().left,
+				width: $saveDialog.outerWidth(),
+				height: $saveDialog.outerHeight()
 			};
 		});
-		this.capture('diff/' + articleName.replace(/\//g, '--SLASH--') + '.png', clipRect);
+		this.capture('diff/' + articleName.replace(/ /g, '_').replace(/[^a-zA-Z0-9_\-]/g, '-') + '.png', clipRect);
+	} else {
+		msg('VisualEditor got clean diff');
 	}
 });
 
 casper.run(function () {
-	this.echo('...');
-	this.echo('### DONE WITH ARTICLE ' + articleName + ' ###');
+	msg('Closing "' + articleName + '"...');
 	this.exit();
 });
