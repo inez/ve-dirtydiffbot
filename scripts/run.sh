@@ -26,7 +26,8 @@ fi
 total=720
 for (( i=1;  i<total; i++)); do
 	echo "[loop] Run $i of $total..."
-	timeout 60 --foreground casperjs $BASE_DIR/test.js
+	# Number must be the last regular argument to `timeout`
+	timeout --foreground 60 casperjs $BASE_DIR/test.js
 done
 
 touch 'done.txt'
