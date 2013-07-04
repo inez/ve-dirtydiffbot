@@ -68,7 +68,12 @@ casper.start(url, function () {
 	msg('Loaded "' + articleName + '"');
 	msg('VisualEditor initializing...');
 	this.evaluate(function () {
-		mw.loader.using('ext.visualEditor.viewPageTarget', function () {
+		// Only need .init, but lets speed up by loading all three because we know we'll need it
+		mw.loader.using([
+			'ext.visualEditor.viewPageTarget.init',
+			'ext.visualEditor.viewPageTarget',
+			'ext.visualEditor.core'
+		], function () {
 			$('#ca-edit').find('a').click();
 		});
 	});
