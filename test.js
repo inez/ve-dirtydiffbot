@@ -59,7 +59,7 @@ articleName = casper.cli.args.length === 0 ? 'Special:Random' : casper.cli.args[
 url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName);
 msg('Loading page "' + articleName + '"...');
 
-casper.userAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1468.0 Safari/537.36');
+casper.userAgent(phantom.defaultPageSettings.userAgent + ' CasperJS/' + phantom.casperVersion + ' ve-dirtydiffbot');
 
 casper.start(url, function () {
 	this.waitFor(
