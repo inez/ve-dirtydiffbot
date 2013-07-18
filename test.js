@@ -1,4 +1,4 @@
-/*global mw, ve, $ */
+/*global mw, ve, $, OO, window */
 
 var casper, articleName, url;
 
@@ -23,60 +23,88 @@ casper = require('casper').create({
 		casper.exit();
 	},
 	verbose: true,
-	logLevel: 'debug'
+	logLevel: 'debug',
+<<<<<<< HEAD
+	onPageInitialized: function () {
+=======
+	onPageInitialized: function() {
+>>>>>>> origin/master
+		casper.evaluate(function () {
+			if (!Function.prototype.bind) {
+				Function.prototype.bind = function (oThis) {
+					if (typeof this !== 'function') {
+						// closest thing possible to the ECMAScript 5 internal IsCallable function
+						throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
+					}
+
+					var aArgs = Array.prototype.slice.call(arguments, 1),
+							fToBind = this,
+							FNOP = function () {},
+							fBound = function () {
+								return fToBind.apply(
+									this instanceof FNOP && oThis ?
+										this :
+										oThis,
+									aArgs.concat(Array.prototype.slice.call(arguments))
+								);
+							};
+
+					FNOP.prototype = this.prototype;
+					fBound.prototype = new FNOP();
+
+					return fBound;
+				};
+			}
+		});
+	}
 });
 
 articleName = casper.cli.args.length === 0 ? 'Special:Random' : casper.cli.args[0];
-url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName);
+url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName) + '?veaction=edit';
 msg('Loading page "' + articleName + '"...');
 
 casper.userAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1468.0 Safari/537.36');
 
 casper.start(url, function () {
-	// PhantomJS does not have Function.prototype.bind,
-	// so inject this Mozilla shim into the page.
-	this.evaluate(function () {
-		if (!Function.prototype.bind) {
-			Function.prototype.bind = function (oThis) {
-				if (typeof this !== 'function') {
-					// closest thing possible to the ECMAScript 5 internal IsCallable function
-					throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-				}
-
-				var aArgs = Array.prototype.slice.call(arguments, 1),
-						fToBind = this,
-						FNOP = function () {},
-						fBound = function () {
-							return fToBind.apply(
-								this instanceof FNOP && oThis ?
-									this :
-									oThis,
-								aArgs.concat(Array.prototype.slice.call(arguments))
-							);
-						};
-
-				FNOP.prototype = this.prototype;
-				fBound.prototype = new FNOP();
-
-				return fBound;
-			};
+	this.waitFor(
+<<<<<<< HEAD
+		function () {
+			return this.evaluate(function () {
+				return window.OO && window.OO.compare;
+			});
+		},
+		function () {
+			this.evaluate(function () {
+				var compareOriginal = OO.compare;
+				OO.compare = function (a, b, asymmetrical) {
+					if (a === b) {
+						return true;
+					} else {
+						return compareOriginal(a, b, asymmetrical);
+					}
+=======
+		function() {
+			return this.evaluate( function() {
+				return OO && OO.compare;
+			} );
+		},
+		function() {
+			this.evaluate( function() {
+				var compareOriginal = OO.compare;
+				OO.compare = function ( a, b, asymmetrical ) {
+					if ( a === b ) return true;
+					return compareOriginal( a, b, asymmetrical );
+>>>>>>> origin/master
+				};
+			});
 		}
-	});
+	);
+
 	articleName = this.evaluate(function () {
 		return mw.config.get('wgPageName');
 	});
 	msg('Loaded "' + articleName + '"');
 	msg('VisualEditor initializing...');
-	this.evaluate(function () {
-		// Only need .init, but lets speed up by loading all three because we know we'll need it
-		mw.loader.using([
-			'ext.visualEditor.viewPageTarget.init',
-			'ext.visualEditor.viewPageTarget',
-			'ext.visualEditor.core'
-		], function () {
-			$('#ca-edit').find('a').click();
-		});
-	});
 	this.waitFor(function () {
 		return this.evaluate(function () {
 			return ve.init.mw.targets[0].active === true;
