@@ -24,11 +24,7 @@ casper = require('casper').create({
 	},
 	verbose: true,
 	logLevel: 'debug',
-<<<<<<< HEAD
 	onPageInitialized: function () {
-=======
-	onPageInitialized: function() {
->>>>>>> origin/master
 		casper.evaluate(function () {
 			if (!Function.prototype.bind) {
 				Function.prototype.bind = function (oThis) {
@@ -67,7 +63,6 @@ casper.userAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like G
 
 casper.start(url, function () {
 	this.waitFor(
-<<<<<<< HEAD
 		function () {
 			return this.evaluate(function () {
 				return window.OO && window.OO.compare;
@@ -82,19 +77,6 @@ casper.start(url, function () {
 					} else {
 						return compareOriginal(a, b, asymmetrical);
 					}
-=======
-		function() {
-			return this.evaluate( function() {
-				return OO && OO.compare;
-			} );
-		},
-		function() {
-			this.evaluate( function() {
-				var compareOriginal = OO.compare;
-				OO.compare = function ( a, b, asymmetrical ) {
-					if ( a === b ) return true;
-					return compareOriginal( a, b, asymmetrical );
->>>>>>> origin/master
 				};
 			});
 		}
