@@ -92,7 +92,7 @@ casper.start(url, function () {
 		// This module is loaded by default now, but many cached pages don't
 		// have it in their load queue yet.
 		mw.loader.using(['ext.visualEditor.viewPageTarget.init'], function () {
-			$('#ca-edit').find('a').click();
+			$('#ca-edit a').click();
 		});
 	});
 	this.waitFor(function () {
