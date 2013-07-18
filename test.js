@@ -56,7 +56,7 @@ casper = require('casper').create({
 });
 
 articleName = casper.cli.args.length === 0 ? 'Special:Random' : casper.cli.args[0];
-url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName) + '?veaction=edit';
+url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName);
 msg('Loading page "' + articleName + '"...');
 
 casper.userAgent('Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1468.0 Safari/537.36');
@@ -87,6 +87,14 @@ casper.start(url, function () {
 	});
 	msg('Loaded "' + articleName + '"');
 	msg('VisualEditor initializing...');
+
+	this.evaluate(function () {
+		// This module is loaded by default now, but many cached pages don't
+		// have it in their load queue yet.
+		mw.loader.using(['ext.visualEditor.viewPageTarget.init'], function () {
+			$('#ca-edit').find('a').click();
+		});
+	});
 	this.waitFor(function () {
 		return this.evaluate(function () {
 			return ve.init.mw.targets[0].active === true;
