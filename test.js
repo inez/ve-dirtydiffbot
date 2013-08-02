@@ -91,8 +91,9 @@ casper.start(url, function () {
 	this.evaluate(function () {
 		// This module is loaded by default now, but many cached pages don't
 		// have it in their load queue yet.
-		mw.loader.using(['ext.visualEditor.viewPageTarget.init'], function () {
-			$('#ca-edit a').click();
+		mw.loader.using(['ext.visualEditor.viewPageTarget.init', 'jquery.cookie'], function () {
+			$.cookie('ve-beta-welcome-dialog', '1', { path: '/' }));
+			$('#ca-ve-edit a').click();
 		});
 	});
 	this.waitFor(function () {
