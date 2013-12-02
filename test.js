@@ -92,7 +92,18 @@ casper.start(url, function () {
 		// This module is loaded by default now, but many cached pages don't
 		// have it in their load queue yet.
 		mw.loader.using(['ext.visualEditor.viewPageTarget.init', 'jquery.cookie'], function () {
+			if (!mw.libs.ve.isAvailable) {
+				// VisualEditor is disabled for anonymous users on this wiki, force init
+				mw.libs.ve.isAvailable = true;
+				mw.libs.ve.setupSkin();
+				$('html')
+					.removeClass('ve-not-available')
+					.addClass('ve-available');
+			}
+
+			// Override welcome dialog
 			$.cookie('ve-beta-welcome-dialog', '1', { path: '/' });
+
 			$('#ca-ve-edit a').click();
 		});
 	});
