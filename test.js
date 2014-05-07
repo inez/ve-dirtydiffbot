@@ -143,8 +143,8 @@ casper.then(function () {
 		msg('VisualEditor got dirty diff');
 		msg('Capturing diff and writing to disk for analysis');
 		clipRect = this.evaluate(function () {
-			var saveDialog = ve.init.mw.targets[0].saveDialog;
-			var $frame = $('.oo-ui-frame').css('height', '10000px');
+			var saveDialog = ve.init.mw.targets[0].saveDialog,
+				$frame = $('.oo-ui-frame').css('height', '10000px');
 			$('.oo-ui-window-frame').css({
 				'max-height': '10000px',
 				'overflow': 'visible'
