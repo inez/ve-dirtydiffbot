@@ -56,7 +56,7 @@ casper = require('casper').create({
 });
 
 articleName = casper.cli.args.length === 0 ? 'Special:Random' : casper.cli.args[0];
-url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName);
+url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName) + '?veaction=edit';
 msg('Loading page "' + articleName + '"...');
 
 casper.userAgent(phantom.defaultPageSettings.userAgent + ' CasperJS/' + phantom.casperVersion + ' ve-dirtydiffbot');
@@ -92,9 +92,8 @@ casper.start(url, function () {
 		// This module is loaded by default now, but many cached pages don't
 		// have it in their load queue yet.
 		mw.loader.using(['ext.visualEditor.viewPageTarget.init', 'jquery.cookie'], function () {
-			if (!mw.libs.ve.isAvailable) {
+			if (mw.libs.ve.isAvailable && !$('html').hasClass('ve-available')) {
 				// VisualEditor is disabled for anonymous users on this wiki, force init
-				mw.libs.ve.isAvailable = true;
 				mw.libs.ve.setupSkin();
 				$('html')
 					.removeClass('ve-not-available')
@@ -121,12 +120,12 @@ casper.then(function () {
 		ve.init.mw.targets[0].edited = true;
 		ve.init.mw.targets[0].toolbarSaveButton.setDisabled(false);
 		ve.init.mw.targets[0].onToolbarSaveButtonClick();
-		ve.init.mw.targets[0].swapSaveDialog('review');
+		ve.init.mw.targets[0].onSaveDialogReview();
 	});
 	this.wait(500, function () {
 		this.waitFor(function () {
 			return this.evaluate(function () {
-				return $('.ve-init-mw-viewPageTarget-saveDialog-working').css('display') === 'none';
+				return ve.init.mw.targets[0].saveDialog.isPending() === false;
 			});
 		});
 	});
@@ -136,20 +135,27 @@ casper.then(function () {
 	var clipRect, diffLength;
 
 	diffLength = this.evaluate(function () {
-		return $('.diff tr').length;
+		var saveDialog = ve.init.mw.targets[0].saveDialog;
+		return saveDialog.$body.find('.diff tr').length;
 	});
 
 	if (diffLength > 1) {
 		msg('VisualEditor got dirty diff');
 		msg('Capturing diff and writing to disk for analysis');
 		clipRect = this.evaluate(function () {
-			var $saveDialog = $('.ve-init-mw-viewPageTarget-saveDialog');
-			$saveDialog.css('max-height', '10000px');
+			var saveDialog = ve.init.mw.targets[0].saveDialog;
+			var $frame = $('.oo-ui-frame').css('height', '10000px');
+			$('.oo-ui-window-frame').css({
+				'max-height': '10000px',
+				'overflow': 'visible'
+			});
 			return {
-				top: $saveDialog.offset().top,
-				left: $saveDialog.offset().left,
-				width: $saveDialog.outerWidth(),
-				height: $saveDialog.outerHeight()
+				top: $frame.offset().top,
+				left: $frame.offset().left,
+				width: $frame.outerWidth(),
+				// Can't use outerHeight of frame because it is too fluid,
+				// it expanded to the max 10000px available instantly
+				height: saveDialog.$reviewViewer.outerHeight() + 150
 			};
 		});
 		this.capture(articleName.replace(/ /g, '_').replace(/[^a-zA-Z0-9_\-]/g, '-') + '.png', clipRect);
