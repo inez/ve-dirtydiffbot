@@ -1,4 +1,4 @@
-/*global mw, ve, $, OO, window */
+/*global mw, ve, $ */
 
 var casper, articleName, url;
 
