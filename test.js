@@ -62,25 +62,6 @@ msg('Loading page "' + articleName + '"...');
 casper.userAgent(phantom.defaultPageSettings.userAgent + ' CasperJS/' + phantom.casperVersion + ' ve-dirtydiffbot');
 
 casper.start(url, function () {
-	this.waitFor(
-		function () {
-			return this.evaluate(function () {
-				return window.OO && window.OO.compare;
-			});
-		},
-		function () {
-			this.evaluate(function () {
-				var compareOriginal = OO.compare;
-				OO.compare = function (a, b, asymmetrical) {
-					if (a === b) {
-						return true;
-					} else {
-						return compareOriginal(a, b, asymmetrical);
-					}
-				};
-			});
-		}
-	);
 
 	articleName = this.evaluate(function () {
 		return mw.config.get('wgPageName');
