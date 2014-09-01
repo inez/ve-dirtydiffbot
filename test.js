@@ -26,37 +26,13 @@ casper = require('casper').create({
 	logLevel: 'debug',
 	onPageInitialized: function () {
 		casper.evaluate(function () {
-			if (!Function.prototype.bind) {
-				Function.prototype.bind = function (oThis) {
-					if (typeof this !== 'function') {
-						// closest thing possible to the ECMAScript 5 internal IsCallable function
-						throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
-					}
-
-					var aArgs = Array.prototype.slice.call(arguments, 1),
-							fToBind = this,
-							FNOP = function () {},
-							fBound = function () {
-								return fToBind.apply(
-									this instanceof FNOP && oThis ?
-										this :
-										oThis,
-									aArgs.concat(Array.prototype.slice.call(arguments))
-								);
-							};
-
-					FNOP.prototype = this.prototype;
-					fBound.prototype = new FNOP();
-
-					return fBound;
-				};
-			}
+			/* Placeholder to execute code early on when the DOM is ready */
 		});
 	}
 });
 
 articleName = casper.cli.args.length === 0 ? 'Special:Random' : casper.cli.args[0];
-url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName) + '?veaction=edit';
+url = 'http://en.wikipedia.org/wiki/' + encodeURIComponent(articleName);
 msg('Loading page "' + articleName + '"...');
 
 casper.userAgent(phantom.defaultPageSettings.userAgent + ' CasperJS/' + phantom.casperVersion + ' ve-dirtydiffbot');
@@ -70,26 +46,23 @@ casper.start(url, function () {
 	msg('VisualEditor initializing...');
 
 	this.evaluate(function () {
-		// This module is loaded by default now, but many cached pages don't
-		// have it in their load queue yet.
 		mw.loader.using(['ext.visualEditor.viewPageTarget.init', 'jquery.cookie'], function () {
 			if (mw.libs.ve.isAvailable && !$('html').hasClass('ve-available')) {
-				// VisualEditor is disabled for anonymous users on this wiki, force init
-				mw.libs.ve.setupSkin();
 				$('html')
 					.removeClass('ve-not-available')
 					.addClass('ve-available');
+				mw.libs.ve.setupSkin();
 			}
 
 			// Override welcome dialog
 			$.cookie('ve-beta-welcome-dialog', '1', { path: '/' });
 
-			$('#ca-ve-edit a').click();
+			mw.libs.ve.onEditTabClick(new $.Event('click'));
 		});
 	});
 	this.waitFor(function () {
 		return this.evaluate(function () {
-			return ve.init.mw.targets[0].active === true;
+			return ve.init.target && ve.init.target.active === true;
 		});
 	});
 });
@@ -98,15 +71,17 @@ casper.then(function () {
 	msg('VisualEditor initialized');
 	msg('VisualEditor generating diff...');
 	this.evaluate(function () {
-		ve.init.mw.targets[0].edited = true;
-		ve.init.mw.targets[0].toolbarSaveButton.setDisabled(false);
-		ve.init.mw.targets[0].onToolbarSaveButtonClick();
-		ve.init.mw.targets[0].onSaveDialogReview();
+		ve.init.target.edited = true;
+		ve.init.target.toolbarSaveButton.setDisabled(false);
+		ve.init.target.onToolbarSaveButtonClick();
+		setTimeout(function () {
+			ve.init.target.onSaveDialogReview();
+		}, 2000);
 	});
 	this.wait(500, function () {
 		this.waitFor(function () {
 			return this.evaluate(function () {
-				return ve.init.mw.targets[0].saveDialog.isPending() === false;
+				return ve.init.target.saveDialog.isPending() === false;
 			});
 		});
 	});
@@ -116,7 +91,7 @@ casper.then(function () {
 	var clipRect, diffLength;
 
 	diffLength = this.evaluate(function () {
-		var saveDialog = ve.init.mw.targets[0].saveDialog;
+		var saveDialog = ve.init.target.saveDialog;
 		return saveDialog.$body.find('.diff tr').length;
 	});
 
@@ -124,12 +99,9 @@ casper.then(function () {
 		msg('VisualEditor got dirty diff');
 		msg('Capturing diff and writing to disk for analysis');
 		clipRect = this.evaluate(function () {
-			var saveDialog = ve.init.mw.targets[0].saveDialog,
-				$frame = $('.oo-ui-frame').css('height', '10000px');
-			$('.oo-ui-window-frame').css({
-				'max-height': '10000px',
-				'overflow': 'visible'
-			});
+			var saveDialog = ve.init.target.saveDialog,
+				$frame = $('.oo-ui-window-frame').css('height', '' );
+
 			return {
 				top: $frame.offset().top,
 				left: $frame.offset().left,
