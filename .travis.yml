@@ -2,9 +2,10 @@ language: node_js
 node_js:
   - "0.10"
 before_script:
-  - npm install -g jshint@2.1.11
+  - npm install -g jshint@2.5.5
+  - npm install -g jscs@1.6.0
 script:
-  - jshint .
+  - "jshint *.js && jscs *.js"
 notifications:
  irc:
    channels:

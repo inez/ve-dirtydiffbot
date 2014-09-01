@@ -100,7 +100,7 @@ casper.then(function () {
 		msg('Capturing diff and writing to disk for analysis');
 		clipRect = this.evaluate(function () {
 			var saveDialog = ve.init.target.saveDialog,
-				$frame = $('.oo-ui-window-frame').css('height', '' );
+				$frame = $('.oo-ui-window-frame').css('height', '');
 
 			return {
 				top: $frame.offset().top,
